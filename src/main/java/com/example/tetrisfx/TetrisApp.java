@@ -73,7 +73,7 @@ public class TetrisApp extends Application {
             pane.getChildren().add(line);
         }
         Pieces builder = new Pieces();
-        Pieces currentPiece = builder.makePiece("S");
+        Pieces currentPiece = builder.makePiece("J");
         pane.getChildren().add(currentPiece.getGroup());
         Scene scene = new Scene(pane, WIDTH, HEIGHT, Color.WHITE);
         stage.setTitle("Tetris");
@@ -94,6 +94,7 @@ public class TetrisApp extends Application {
             }
 
         });
+
         Timeline fall = new Timeline(
                 new KeyFrame(Duration.seconds(0.75), event -> {
                     currentPiece.softDrop();
@@ -101,6 +102,7 @@ public class TetrisApp extends Application {
         );
         fall.setCycleCount(Timeline.INDEFINITE);
         fall.play();
+
         stage.show();
     }
 
