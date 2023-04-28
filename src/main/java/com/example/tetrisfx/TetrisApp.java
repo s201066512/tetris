@@ -56,6 +56,10 @@ Doing:
         And I can't just make them all, I only want them to be added to the scene when they're called
         So maybe make a method which creates a new shape each time?
     Test making a piece, adding it to the scene and moving it
+    Added the pieces, and they fall and can be moved left and right
+    Need to add the rotation methods
+    Then add detection so that pieces stop when they hit the bottom and then when they hit a piece which already stopped
+    Also needs to make a new piece and set it to current piece when one stops
 */
 
 public class TetrisApp extends Application {
@@ -69,7 +73,7 @@ public class TetrisApp extends Application {
             pane.getChildren().add(line);
         }
         Pieces builder = new Pieces();
-        Pieces currentPiece = builder.makePiece("T");
+        Pieces currentPiece = builder.makePiece("S");
         pane.getChildren().add(currentPiece.getGroup());
         Scene scene = new Scene(pane, WIDTH, HEIGHT, Color.WHITE);
         stage.setTitle("Tetris");
@@ -78,11 +82,17 @@ public class TetrisApp extends Application {
             KeyCode code = key.getCode();
             if (code == KeyCode.RIGHT) {
                 currentPiece.moveRight();
-            } else if (code == KeyCode.LEFT) {
+            }
+            else if (code == KeyCode.LEFT) {
                 currentPiece.moveLeft();
-            } else if (code == KeyCode.DOWN) {
+            }
+            else if (code == KeyCode.DOWN) {
                 currentPiece.softDrop();
             }
+            else if (code == KeyCode.UP) {
+                currentPiece.rotateRight();
+            }
+
         });
         Timeline fall = new Timeline(
                 new KeyFrame(Duration.seconds(0.75), event -> {
