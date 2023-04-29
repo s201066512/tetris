@@ -26,6 +26,8 @@ public class Pieces {
     Group blocks;
     String type;
     int orientation = 0;
+    boolean stop = false;
+
     public Pieces(){}
 
     public Pieces(Group blocks, String type, int[][] coordinates){
@@ -136,6 +138,12 @@ public class Pieces {
         int[] b2 = {coordinates[1][0] + 50, coordinates[1][1]};
         int[] b3 = {coordinates[2][0] + 50, coordinates[2][1]};
         int[] b4 = {coordinates[3][0] + 50, coordinates[3][1]};
+        if (b1[0] + 50 == 550 || b2[0] + 50 == 550 || b3[0] + 50 == 550 || b4[0] + 50 == 550){
+            b1[0] = b1[0] - 50;
+            b2[0] = b2[0] - 50;
+            b3[0] = b3[0] - 50;
+            b4[0] = b4[0] - 50;
+        }
         int[][] newCoordinates = {b1, b2, b3, b4};
         Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
         block1.setX(b1[0]);
@@ -152,6 +160,12 @@ public class Pieces {
         int[] b2 = {coordinates[1][0] - 50, coordinates[1][1]};
         int[] b3 = {coordinates[2][0] - 50, coordinates[2][1]};
         int[] b4 = {coordinates[3][0] - 50, coordinates[3][1]};
+        if (b1[0] - 50 == -100 || b2[0] - 50 == -100 || b3[0] - 50 == -100  || b4[0] - 50 == -100 ){
+            b1[0] = b1[0] + 50;
+            b2[0] = b2[0] + 50;
+            b3[0] = b3[0] + 50;
+            b4[0] = b4[0] + 50;
+        }
         int[][] newCoordinates = {b1, b2, b3, b4};
         Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
         block1.setX(b1[0]);
@@ -164,38 +178,49 @@ public class Pieces {
         setCoordinates(newCoordinates);
     }
     public void softDrop(){
-        int[] b1 = {coordinates[0][0], coordinates[0][1] + 35};
-        int[] b2 = {coordinates[1][0], coordinates[1][1] + 35};
-        int[] b3 = {coordinates[2][0], coordinates[2][1] + 35};
-        int[] b4 = {coordinates[3][0], coordinates[3][1] + 35};
-        int[][] newCoordinates = {b1, b2, b3, b4};
-        Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
-        block1.setY(b1[1]);
-        Rectangle block2 = (Rectangle) blocks.getChildren().get(1);
-        block2.setY(b2[1]);
-        Rectangle block3 = (Rectangle) blocks.getChildren().get(2);
-        block3.setY(b3[1]);
-        Rectangle block4 = (Rectangle) blocks.getChildren().get(3);
-        block4.setY(b4[1]);
-        setCoordinates(newCoordinates);
+        if (!stop){
+            int[] b1 = {coordinates[0][0], coordinates[0][1] + 35};
+            int[] b2 = {coordinates[1][0], coordinates[1][1] + 35};
+            int[] b3 = {coordinates[2][0], coordinates[2][1] + 35};
+            int[] b4 = {coordinates[3][0], coordinates[3][1] + 35};
+            int[][] newCoordinates = {b1, b2, b3, b4};
+            setCoordinates(newCoordinates);
+            int lowestY = Math.max(b1[1], Math.max(b2[1], Math.max(b3[1], b4[1])));
+            if (lowestY < 665){
+                Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
+                block1.setY(b1[1]);
+                System.out.println("Block1 Y coordinates" + b1[1]);
+                Rectangle block2 = (Rectangle) blocks.getChildren().get(1);
+                block2.setY(b2[1]);
+                System.out.println("Block2 Y coordinates" + b2[1]);
+                Rectangle block3 = (Rectangle) blocks.getChildren().get(2);
+                block3.setY(b3[1]);
+                System.out.println("Block3 Y coordinates" + b3[1]);
+                Rectangle block4 = (Rectangle) blocks.getChildren().get(3);
+                block4.setY(b4[1]);
+                System.out.println("Block4 Y coordinates" + b4[1]);
+            }
+            else{
+                stop = true;
+                Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
+                block1.setX(newCoordinates[0][0]);
+                block1.setY(newCoordinates[0][1]);
+                Rectangle block2 = (Rectangle) blocks.getChildren().get(1);
+                block2.setX(newCoordinates[1][0]);
+                block2.setY(newCoordinates[1][1]);
+                Rectangle block3 = (Rectangle) blocks.getChildren().get(2);
+                block3.setX(newCoordinates[2][0]);
+                block3.setY(newCoordinates[2][1]);
+                Rectangle block4 = (Rectangle) blocks.getChildren().get(3);
+                block4.setX(newCoordinates[3][0]);
+                block4.setY(newCoordinates[3][1]);
+                String[] requests = {"O", "I", "S", "Z", "L", "J", "T"};
+                int random = (int) (Math.random() * 6); // 0 to 6
+                makePiece(requests[random]);
+            }
+        }
     }
 
-    public void falling() {
-        int[] b1 = {coordinates[0][0], coordinates[0][1] + 35};
-        int[] b2 = {coordinates[1][0], coordinates[1][1] + 35};
-        int[] b3 = {coordinates[2][0], coordinates[2][1] + 35};
-        int[] b4 = {coordinates[3][0], coordinates[3][1] + 35};
-        int[][] newCoordinates = {b1, b2, b3, b4};
-        Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
-        block1.setY(b1[1]);
-        Rectangle block2 = (Rectangle) blocks.getChildren().get(1);
-        block2.setY(b2[1]);
-        Rectangle block3 = (Rectangle) blocks.getChildren().get(2);
-        block3.setY(b3[1]);
-        Rectangle block4 = (Rectangle) blocks.getChildren().get(3);
-        block4.setY(b4[1]);
-        setCoordinates(newCoordinates);
-    }
     public void rotateRight() {
         if (type.equals("I")) {
             if (orientation == 0){
@@ -593,8 +618,19 @@ public class Pieces {
         return this.blocks;
     }
 
+    public boolean isStop() {
+        return stop;
+    }
+
     public int[][] getCoordinates() {
         return coordinates;
+    }
+    public int[] getXcoordindates(){
+        int x1 = coordinates[0][0];
+        int x2 = coordinates[1][0];
+        int x3 = coordinates[2][0];
+        int x4 = coordinates[3][0];
+        return new int[] {x1, x2, x3, x4};
     }
 
     public String getType() {

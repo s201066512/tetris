@@ -16,51 +16,17 @@ import java.util.ArrayList;
 import static com.example.tetrisfx.Board.drawBoard;
 
 /*
-Input
-    Up arrow and X are to rotate 90° clockwise.
-    Space to hard drop.
-    Shift and C are to hold.
-    Ctrl and Z are to rotate 90° counterclockwise.
-    Esc and F1 are to pause.
+    When the piece is moved down, check if any of the blocks are touching the bottom of the game board. If any block is touching the bottom, set the isStopped flag to true.
 
-UI
-    Grid ten spaces across and twenty spaces down
-    Display pieces
-Gameplay
-    Create tetrominoes
-        Cyan I
-        Yellow O
-        Purple T
-        Green S
-        Red Z
-        Blue J
-        Orange L
-        Randomly select one and add it to a queue
-    Beginning at the top, they will:
-        be in correct orientation and color
-            The I and O spawn in the middle columns
-            The rest spawn in the left-middle columns
-            The tetriminoes spawn horizontally with J, L and T spawning flat-side first.
-            Spawn above playfield, row 21 for I, and 21/22 for all other tetriminoes.
-            Immediately drop one space if no existing Block is in its path
-    Half second lock delay (pieces can still be moved on the ground for half a second)
+    When the piece is moved left or right, check if any of the blocks are touching the left or right walls of the game board. If any block is touching a wall, prevent the piece from moving in that direction.
 
-Good things to also have
-    Hold function
-    Ghost piece display
+    When the piece is rotated, check if any of the blocks are overlapping with other blocks in the game board. If there is an overlap, prevent the rotation.
 
-Doing:
-    First I'll try creating the pieces and allowing them to be translated through user input
-    Actually I need the grid first to determine sizes
-    So now how do I make the pieces?
-        And I can't just make them all, I only want them to be added to the scene when they're called
-        So maybe make a method which creates a new shape each time?
-    Test making a piece, adding it to the scene and moving it
-    Added the pieces, and they fall and can be moved left and right
-    Need to add the rotation methods
-    Then add detection so that pieces stop when they hit the bottom and then when they hit a piece which already stopped
-    Also needs to make a new piece and set it to current piece when one stops
-*/
+    When the piece is stopped, add each of its blocks to the blocks Group and remove the listeners for keyboard events so that the player can't move it anymore.
+
+    Check for completed lines by iterating through the game board rows and counting the number of blocks in each row. If a row is full, remove all the blocks in that row and move down all the blocks above it.
+
+    Create a new piece and add listeners for keyboard events to allow the player to move it.*/
 
 public class TetrisApp extends Application {
     final static double WIDTH = 500;
@@ -68,12 +34,14 @@ public class TetrisApp extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         ArrayList<Line> grid = drawBoard();
+        String[] requests = {"O", "I", "S", "Z", "L", "J", "T"};
+        int random = (int) (Math.random() * 6); // 0 to 6
         Pane pane = new Pane();
         for (Line line : grid) {
             pane.getChildren().add(line);
         }
         Pieces builder = new Pieces();
-        Pieces currentPiece = builder.makePiece("J");
+        Pieces currentPiece = builder.makePiece(requests[random]); // add random value here
         pane.getChildren().add(currentPiece.getGroup());
         Scene scene = new Scene(pane, WIDTH, HEIGHT, Color.WHITE);
         stage.setTitle("Tetris");
@@ -98,11 +66,12 @@ public class TetrisApp extends Application {
         Timeline fall = new Timeline(
                 new KeyFrame(Duration.seconds(0.75), event -> {
                     currentPiece.softDrop();
+                    if (currentPiece.isStop()){
+                    }
                 })
         );
         fall.setCycleCount(Timeline.INDEFINITE);
         fall.play();
-
         stage.show();
     }
 
