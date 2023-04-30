@@ -4,6 +4,10 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
 /*
 Create rectangles depending on the request
     1 will be O, 2 will be I, 3 will be T, 4 will be L, 5 will be S, 6 will be Z
@@ -145,6 +149,7 @@ public class Pieces {
             b4[0] = b4[0] - 50;
         }
         int[][] newCoordinates = {b1, b2, b3, b4};
+        setCoordinates(newCoordinates);
         Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
         block1.setX(b1[0]);
         Rectangle block2 = (Rectangle) blocks.getChildren().get(1);
@@ -153,7 +158,6 @@ public class Pieces {
         block3.setX(b3[0]);
         Rectangle block4 = (Rectangle) blocks.getChildren().get(3);
         block4.setX(b4[0]);
-        setCoordinates(newCoordinates);
     }
     public void moveLeft(){
         int[] b1 = {coordinates[0][0] - 50, coordinates[0][1]};
@@ -167,6 +171,7 @@ public class Pieces {
             b4[0] = b4[0] + 50;
         }
         int[][] newCoordinates = {b1, b2, b3, b4};
+        setCoordinates(newCoordinates);
         Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
         block1.setX(b1[0]);
         Rectangle block2 = (Rectangle) blocks.getChildren().get(1);
@@ -175,7 +180,6 @@ public class Pieces {
         block3.setX(b3[0]);
         Rectangle block4 = (Rectangle) blocks.getChildren().get(3);
         block4.setX(b4[0]);
-        setCoordinates(newCoordinates);
     }
     public void softDrop(){
         if (!stop){
@@ -189,16 +193,12 @@ public class Pieces {
             if (lowestY < 665){
                 Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
                 block1.setY(b1[1]);
-                System.out.println("Block1 Y coordinates" + b1[1]);
                 Rectangle block2 = (Rectangle) blocks.getChildren().get(1);
                 block2.setY(b2[1]);
-                System.out.println("Block2 Y coordinates" + b2[1]);
                 Rectangle block3 = (Rectangle) blocks.getChildren().get(2);
                 block3.setY(b3[1]);
-                System.out.println("Block3 Y coordinates" + b3[1]);
                 Rectangle block4 = (Rectangle) blocks.getChildren().get(3);
                 block4.setY(b4[1]);
-                System.out.println("Block4 Y coordinates" + b4[1]);
             }
             else{
                 stop = true;
@@ -214,13 +214,16 @@ public class Pieces {
                 Rectangle block4 = (Rectangle) blocks.getChildren().get(3);
                 block4.setX(newCoordinates[3][0]);
                 block4.setY(newCoordinates[3][1]);
-                String[] requests = {"O", "I", "S", "Z", "L", "J", "T"};
-                int random = (int) (Math.random() * 6); // 0 to 6
-                makePiece(requests[random]);
             }
         }
     }
 
+    /*
+    How do I make sure that rotations will not cause intersection?
+    */
+    public void collide(){
+
+    }
     public void rotateRight() {
         if (type.equals("I")) {
             if (orientation == 0){
@@ -621,20 +624,18 @@ public class Pieces {
     public boolean isStop() {
         return stop;
     }
-
+    public void setStop(boolean boo){
+        stop = boo;
+    }
     public int[][] getCoordinates() {
         return coordinates;
     }
-    public int[] getXcoordindates(){
-        int x1 = coordinates[0][0];
-        int x2 = coordinates[1][0];
-        int x3 = coordinates[2][0];
-        int x4 = coordinates[3][0];
-        return new int[] {x1, x2, x3, x4};
+    public int[] getXcoordinates(){
+        return new int[] {coordinates[0][0], coordinates[1][0], coordinates[2][0], coordinates[3][0]};
     }
 
-    public String getType() {
-        return type;
+    public int[] getYcoordinates(){
+        return new int[] {coordinates[0][1], coordinates[1][1], coordinates[2][1], coordinates[3][1]};
     }
 
     public void setCoordinates(int[][] newCoordinates) {
