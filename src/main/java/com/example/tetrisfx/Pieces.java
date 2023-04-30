@@ -1,38 +1,22 @@
 package com.example.tetrisfx;
 
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
 
-/*
-Create rectangles depending on the request
-    1 will be O, 2 will be I, 3 will be T, 4 will be L, 5 will be S, 6 will be Z
-Just create the rectangle and then center it after
-
-Every move needs to be checked (i.e. No illegal moves)
-    Make a method which is used and checks that the new position of the tetriminoe isn't intersecting an existing one
-
-Represent each piece with a group of rectangles
-
-Have assign each piece a current position (what row and column)
-    Add these variables into the constructor
-So process for making a shape so far
-    Pieces OBlock = new Pieces(getOblock(), 0, 0);
-    After making a piece all my transforms will use the setColumn and setRow methods
-
-*/
 public class Pieces {
     int[][] coordinates;
     Group blocks;
     String type;
-    int orientation = 0;
-    boolean stop = false;
+    int orientation = 0; // orientation by default is 0
+    boolean stop = false; // used to determine whether the piece should still be moving
+    // if this value is true a new piece will be created and set to be the new currentPiece
 
-    public Pieces(){}
+    public Pieces(){
+    }
 
     public Pieces(Group blocks, String type, int[][] coordinates){
         this.blocks = blocks;
@@ -44,19 +28,22 @@ public class Pieces {
     // grid is 10 by 20
     // middle is 250
     public Pieces makePiece(String request){
-        if (request.equals("O")){
+        if (request.equals("O")){ // create new piece depending on the request
+            // creates rectangles
             Rectangle block1 = new Rectangle(200,0,50,35);
             Rectangle block2 = new Rectangle(250,0,50,35);
             Rectangle block3 = new Rectangle(200,35,50,35);
             Rectangle block4 = new Rectangle(250,35,50,35);
+            // colors the rectangles
             block1.setFill(Color.YELLOW);
             block2.setFill(Color.YELLOW);
             block3.setFill(Color.YELLOW);
             block4.setFill(Color.YELLOW);
-            coordinates = new int[][]{{200, 0}, {250, 0}, {200, 35}, {250, 35}};
-            Group squares = new Group(block1, block2, block3, block4);
-            return new Pieces(squares, "O", coordinates);
+            coordinates = new int[][]{{200, 0}, {250, 0}, {200, 35}, {250, 35}}; // adds coordinates to each rectangle
+            Group squares = new Group(block1, block2, block3, block4); // creates a group of rectangles
+            return new Pieces(squares, "O", coordinates); // return the new Pieces object
         }
+        // repeat for each different shape
         if (request.equals("I")){
             Rectangle block1 = new Rectangle(150,0,50,35);
             Rectangle block2 = new Rectangle(200,0,50,35);
@@ -138,18 +125,21 @@ public class Pieces {
         return null;
     }
     public void moveRight(){
+        // create coordinate values which are each 1 square to the right of the former x coordinate values
         int[] b1 = {coordinates[0][0] + 50, coordinates[0][1]};
         int[] b2 = {coordinates[1][0] + 50, coordinates[1][1]};
         int[] b3 = {coordinates[2][0] + 50, coordinates[2][1]};
         int[] b4 = {coordinates[3][0] + 50, coordinates[3][1]};
-        if (b1[0] + 50 == 550 || b2[0] + 50 == 550 || b3[0] + 50 == 550 || b4[0] + 50 == 550){
+        if (b1[0] + 50 == 550 || b2[0] + 50 == 550 || b3[0] + 50 == 550 || b4[0] + 50 == 550){ // if any would go beyond the right "wall"
+            // move them left to negate that
             b1[0] = b1[0] - 50;
             b2[0] = b2[0] - 50;
             b3[0] = b3[0] - 50;
             b4[0] = b4[0] - 50;
         }
-        int[][] newCoordinates = {b1, b2, b3, b4};
-        setCoordinates(newCoordinates);
+        int[][] newCoordinates = {b1, b2, b3, b4}; // now create the new coordinate values
+        setCoordinates(newCoordinates); // set the new coordinate values
+        // apply the transforms
         Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
         block1.setX(b1[0]);
         Rectangle block2 = (Rectangle) blocks.getChildren().get(1);
@@ -160,6 +150,7 @@ public class Pieces {
         block4.setX(b4[0]);
     }
     public void moveLeft(){
+        // same as moveRight but going the other way
         int[] b1 = {coordinates[0][0] - 50, coordinates[0][1]};
         int[] b2 = {coordinates[1][0] - 50, coordinates[1][1]};
         int[] b3 = {coordinates[2][0] - 50, coordinates[2][1]};
@@ -182,15 +173,17 @@ public class Pieces {
         block4.setX(b4[0]);
     }
     public void softDrop(){
-        if (!stop){
+        if (!stop){ // if the piece has not yet stopped
+            // move its y coordinates one down
             int[] b1 = {coordinates[0][0], coordinates[0][1] + 35};
             int[] b2 = {coordinates[1][0], coordinates[1][1] + 35};
             int[] b3 = {coordinates[2][0], coordinates[2][1] + 35};
             int[] b4 = {coordinates[3][0], coordinates[3][1] + 35};
             int[][] newCoordinates = {b1, b2, b3, b4};
             setCoordinates(newCoordinates);
-            int lowestY = Math.max(b1[1], Math.max(b2[1], Math.max(b3[1], b4[1])));
-            if (lowestY < 665){
+            int lowestY = Math.max(b1[1], Math.max(b2[1], Math.max(b3[1], b4[1]))); // get the lowest y value
+            if (lowestY < 665){ // if that y value is less than 665
+                // move it down
                 Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
                 block1.setY(b1[1]);
                 Rectangle block2 = (Rectangle) blocks.getChildren().get(1);
@@ -201,7 +194,9 @@ public class Pieces {
                 block4.setY(b4[1]);
             }
             else{
+                // otherwise, stop it
                 stop = true;
+                // and to be honest I'm not sure if the setX and setY methods are even necessary here, but they're an added precaution
                 Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
                 block1.setX(newCoordinates[0][0]);
                 block1.setY(newCoordinates[0][1]);
@@ -219,14 +214,16 @@ public class Pieces {
     }
 
     /*
-    How do I make sure that rotations will not cause intersection?
+    The general idea behind each of these movement methods is to:
+    - create new coordinates where you want the piece to be after
+    - update the piece's coordinates to the new ones
+    - move the rectangles by the values in the new coordinates
     */
-    public void collide(){
-
-    }
     public void rotateRight() {
         if (type.equals("I")) {
-            if (orientation == 0){
+            if (orientation == 0){ // each rotation depends on the orientation
+                // each transform here depends on the piece
+                // but from then on it's the same for any of the other movement methods
                 int[] b1 = {coordinates[0][0] + 50, coordinates[0][1] + 35};
                 int[] b2 = {coordinates[1][0], coordinates[1][1]};
                 int[] b3 = {coordinates[2][0] - 50, coordinates[2][1] - 35};

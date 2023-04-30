@@ -18,52 +18,114 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.example.tetrisfx.Board.drawBoard;
 
-/*
-    When the piece is moved down, check if any of the blocks are touching the bottom of the game board. If any block is touching the bottom, set the isStopped flag to true.
-
-    When the piece is moved left or right, check if any of the blocks are touching the left or right walls of the game board. If any block is touching a wall, prevent the piece from moving in that direction.
-
-    When the piece is rotated, check if any of the blocks are overlapping with other blocks in the game board. If there is an overlap, prevent the rotation.
-
-    Check for completed lines by iterating through the game board rows and counting the number of blocks in each row. If a row is full, remove all the blocks in that row and move down all the blocks above it.
-
-    */
 
 public class TetrisApp extends Application {
+    List<List<Integer>> occupiedSquares = new ArrayList<>(); // 2D ArrayList which contains the coordinates of the occupied squares
+
     final static double WIDTH = 500;
     final static double HEIGHT = 700;
     @Override
     public void start(Stage stage) {
         ArrayList<Line> grid = drawBoard();
-        List<List<Integer>> occupiedSquares = new ArrayList<>();
+
         String[] requests = {"O", "I", "S", "Z", "L", "J", "T"};
-        int initial = (int) (Math.random() * 6); // 0 to 6
+        int initial = (int) (Math.random() * 6); // used for the first piece
+
+        // draw the grid
         Pane pane = new Pane();
         for (Line line : grid) {
             pane.getChildren().add(line);
         }
-        Pieces builder = new Pieces();
-        AtomicReference<Pieces> currentPiece = new AtomicReference<>(builder.makePiece(requests[initial])); // add random value here
-        pane.getChildren().add(currentPiece.get().getGroup());
 
+        Pieces builder = new Pieces();
+        AtomicReference<Pieces> currentPiece = new AtomicReference<>(builder.makePiece(requests[initial])); // idk what atomic reference is but intellij told me to use it
+        pane.getChildren().add(currentPiece.get().getGroup()); // add currentPiece to the scene
+
+        // typical scene creation
         Scene scene = new Scene(pane, WIDTH, HEIGHT, Color.WHITE);
         stage.setTitle("Tetris");
         stage.setScene(scene);
+
+        // controls, pretty self explanatory
         scene.addEventHandler(KeyEvent.KEY_PRESSED, (key) -> {
             KeyCode code = key.getCode();
+    /*
+    Line clearing
+    this might be the hardest part yet
+    A line is cleared if occupiedSquares contains 10 points with the same y value
+    When a line is cleared all squares with that y value should be erased
+    Then every other square must be moved 35 down
+    How do I access the rectangles at the coordinates that need to be cleared?
+    Once I figure that out, "erasing" them could be as simple as setting their fill to transparent
+    As well as removing the coordinates from occupiedSquares
+    */
+
             if (code == KeyCode.RIGHT) {
-                currentPiece.get().moveRight();
+                int[][] coordinates = currentPiece.get().getCoordinates();
+                boolean canMoveRight = true;
+                for (int i = 0; i < occupiedSquares.size() && canMoveRight; i++){
+                    for (int j = 0; j < coordinates.length; j++){
+                        List<Integer> square = Arrays.asList(coordinates[j][0] + 50, coordinates[j][1]);
+                        if (occupiedSquares.get(i).equals(square)){
+                            canMoveRight = false;
+                            break;
+                        }
+                    }
+                }
+                if (canMoveRight) {
+                    currentPiece.get().moveRight();
+                }
             }
+
             else if (code == KeyCode.LEFT) {
-                currentPiece.get().moveLeft();
+                int[][] coordinates = currentPiece.get().getCoordinates();
+                boolean canMoveLeft = true;
+                for (int i = 0; i < occupiedSquares.size() && canMoveLeft; i++){
+                    for (int j = 0; j < coordinates.length; j++){
+                        List<Integer> square = Arrays.asList(coordinates[j][0] - 50, coordinates[j][1]);
+                        if (occupiedSquares.get(i).equals(square)){
+                            canMoveLeft = false;
+                            break;
+                        }
+                    }
+                }
+                if (canMoveLeft) {
+                    currentPiece.get().moveLeft();
+                }
             }
+
             else if (code == KeyCode.DOWN) {
                 currentPiece.get().softDrop();
             }
-            else if (code == KeyCode.UP) {
-                currentPiece.get().rotateRight();
-            }
 
+            else if (code == KeyCode.UP) {
+                int[][] coordinates = currentPiece.get().getCoordinates();
+                boolean canTurnRight = true;
+                if (coordinates[0][0] + 50 >= 500 || coordinates[1][0] + 50 >= 500 || coordinates[2][0] + 50 >= 500 || coordinates[3][0] + 50 >= 500){
+                    canTurnRight = false;
+                }
+                if (coordinates[0][0] - 50 < 0  || coordinates[1][0] - 50 < 0  || coordinates[2][0] - 50 < 0 || coordinates[3][0] - 50 < 0){
+                    canTurnRight = false;
+                }
+
+                for (int i = 0; i < occupiedSquares.size() && canTurnRight; i++){
+                    for (int j = 0; j < coordinates.length; j++){
+                        List<Integer> squareLeft = Arrays.asList(coordinates[j][0] - 50, coordinates[j][1]);
+                        List<Integer> squareRight = Arrays.asList(coordinates[j][0] + 50, coordinates[j][1]);
+                        List<Integer> squareUp = Arrays.asList(coordinates[j][0], coordinates[j][1] - 35);
+                        List<Integer> squareDown = Arrays.asList(coordinates[j][0], coordinates[j][1] + 35);
+
+                        if (occupiedSquares.get(i).equals(squareLeft) || occupiedSquares.get(i).equals(squareRight)
+                                || occupiedSquares.get(i).equals(squareUp) || occupiedSquares.get(i).equals(squareDown)){
+                            canTurnRight = false;
+                            break;
+                        }
+                    }
+                }
+                if (canTurnRight) {
+                    currentPiece.get().rotateRight();
+                }
+            }
         });
 
         Timeline fall = new Timeline(
@@ -107,5 +169,8 @@ public class TetrisApp extends Application {
 
     public static void main(String[] args) {
         launch();
+    }
+    public List<List<Integer>> getOccupiedSquares() {
+        return occupiedSquares;
     }
 }
