@@ -4,9 +4,6 @@ import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Pieces {
     int[][] coordinates;
     Group blocks;
@@ -196,7 +193,7 @@ public class Pieces {
             else{
                 // otherwise, stop it
                 stop = true;
-                // and to be honest I'm not sure if the setX and setY methods are even necessary here, but they're an added precaution
+                // and to be honest I'm not sure if the setX and setY methods are even necessary here
                 Rectangle block1 = (Rectangle) blocks.getChildren().get(0);
                 block1.setX(newCoordinates[0][0]);
                 block1.setY(newCoordinates[0][1]);
@@ -217,7 +214,7 @@ public class Pieces {
     The general idea behind each of these movement methods is to:
     - create new coordinates where you want the piece to be after
     - update the piece's coordinates to the new ones
-    - move the rectangles by the values in the new coordinates
+    - move the rectangles by the values of the new coordinates
     */
     public void rotateRight() {
         if (type.equals("I")) {
@@ -627,12 +624,9 @@ public class Pieces {
     public int[][] getCoordinates() {
         return coordinates;
     }
-    public int[] getXcoordinates(){
-        return new int[] {coordinates[0][0], coordinates[1][0], coordinates[2][0], coordinates[3][0]};
-    }
 
-    public int[] getYcoordinates(){
-        return new int[] {coordinates[0][1], coordinates[1][1], coordinates[2][1], coordinates[3][1]};
+    public String getType() {
+        return type;
     }
 
     public void setCoordinates(int[][] newCoordinates) {
