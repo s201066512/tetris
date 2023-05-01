@@ -19,14 +19,26 @@ import java.util.function.Predicate;
 import static com.example.tetrisfx.Board.drawBoard;
 
 /*
+Make the colors right
+Lines are still not being cleared correctly consistently
+    Probably because I basically assume that all line clears occur at the very bottom
+    So when I move pieces down 35, I shouldn't do that to every single piece
+    But instead only do it to the pieces that are above the cleared line's row
+How should I clear the correct lines?
+First I need to figure out the y coordinate of the lines that I am clearing
+Clear the squares at that y value
+Then only move the lines above that value down
 */
 public class TetrisApp extends Application {
     Pane pane = new Pane();
     List<List<Integer>> occupiedSquares = new ArrayList<>(); // 2D ArrayList which contains the coordinates of the occupied squares
     Group drawnSquares = new Group();
-    List<Pieces> oldPieces = new ArrayList<>();
     int count = 0;
+    int clearedY = 0;
+    int clearedLines = 0;
+    double fallSpeed = 0.75;
     boolean shouldClear = false;
+    String currentPieceType;
     final static double WIDTH = 500;
     final static double HEIGHT = 700;
     @Override
@@ -43,7 +55,7 @@ public class TetrisApp extends Application {
         Pieces builder = new Pieces();
         AtomicReference<Pieces> currentPiece = new AtomicReference<>(builder.makePiece(requests[initial])); // idk what atomic reference is but intellij told me to use it
         pane.getChildren().add(currentPiece.get().getGroup()); // add currentPiece to the scene
-
+        currentPieceType = currentPiece.get().getType();
         // typical scene creation
         Scene scene = new Scene(pane, WIDTH, HEIGHT, Color.WHITE);
         stage.setTitle("Tetris");
@@ -122,7 +134,8 @@ public class TetrisApp extends Application {
         });
 
         Timeline fall = new Timeline(
-                new KeyFrame(Duration.seconds(0.75), event -> { // do every 0.75 seconds
+                new KeyFrame(Duration.seconds(fallSpeed), event -> { // do every 0.75 seconds
+                    fallSpeed = (clearedLines*1.15)/50; // value not changing
                     if (!currentPiece.get().isStop()){
                         currentPiece.get().softDrop();
                     }
@@ -130,7 +143,8 @@ public class TetrisApp extends Application {
         );
         // yeah, this many nested for-loops being done every 0.01 seconds seems like a very bad idea
         Timeline check = new Timeline(
-                new KeyFrame(Duration.seconds(0.01), event -> { // doing so constantly seems like a bad idea
+                new KeyFrame(Duration.seconds(0.005), event -> { // doing so constantly seems like a bad idea
+                    currentPieceType = currentPiece.get().getType();
                     draw();
                     shouldClearLine();
                     if (shouldClear){
@@ -146,7 +160,6 @@ public class TetrisApp extends Application {
                             occupiedSquares.add(square);
                         }
                         // make a new piece
-                        oldPieces.add(currentPiece.get());
                         int random = (int) (Math.random() * 7); // random piece value
                         currentPiece.set(builder.makePiece(requests[random]));
                         pane.getChildren().add(currentPiece.get().getGroup()); // re-add current piece to the scene
@@ -185,7 +198,16 @@ public class TetrisApp extends Application {
             double x = square.get(0);
             double y = square.get(1);
             Rectangle block = new Rectangle(x, y, 50, 35);
-            block.setFill(Color.WHEAT);
+            switch (currentPieceType) {
+                case "O" -> block.setFill(Color.YELLOW);
+                case "I" -> block.setFill(Color.CYAN);
+                case "L" -> block.setFill(Color.ORANGE);
+                case "J" -> block.setFill(Color.BLUE);
+                case "S" -> block.setFill(Color.GREEN);
+                case "Z" -> block.setFill(Color.RED);
+                case "T" -> block.setFill(Color.PURPLE);
+                default -> block.setFill(Color.TRANSPARENT);
+            }
             drawnSquares.getChildren().add(block);
         }
         if (!pane.getChildren().contains(drawnSquares)) {
@@ -193,27 +215,41 @@ public class TetrisApp extends Application {
         }
     }
     public void shouldClearLine() {
+        int y = 0;
         Map<Integer, Integer> yCounts = new HashMap<>();
         for (List<Integer> square : occupiedSquares) {
-            int y = square.get(1);
+            y = square.get(1);
             yCounts.put(y, yCounts.getOrDefault(y, 0) + 1);
         }
         if (yCounts.values().stream().anyMatch(Predicate.isEqual(10))) {
+            clearedY = y;
             shouldClear = true;
         }
     }
 
     public void clearLine(){
+        clearedLines++;
+        System.out.println("Lines cleared: " + clearedLines);
         drawnSquares.getChildren().clear();
         List<List<Integer>> toRemove = new ArrayList<>();
         for (List<Integer> occupiedSquare : occupiedSquares) {
-            if (occupiedSquare.get(1).equals(665)) {
+            if (occupiedSquare.get(1) == clearedY) {
                 toRemove.add(occupiedSquare);
             }
         }
+        /*
+        * if any block's y value is higher up than or equal to the y value that should be cleared
+        * move the blocks that have the y value which is higher than or equal to the y value that should be cleared, down 35
+        * But when I tried to clear a line on 595 and in turn move every y value less than or equal to 595
+        * I ended up with a gap on the bottom, meaning that the pieces which are below clearedY still get pushed down
+        * */
         occupiedSquares.removeAll(toRemove); // remove the squares which were on the bottom
         for (List<Integer> occupiedSquare : occupiedSquares) {
-            occupiedSquare.set(1, occupiedSquare.get(1) + 35); // move each square down 35
+            if (occupiedSquare.get(1) < clearedY){
+                System.out.println("occupiedSquare.get(1) " + occupiedSquare.get(1));
+                System.out.println("clearedY " + clearedY);
+                occupiedSquare.set(1, occupiedSquare.get(1) + 35); // move each square down 35
+            }
         }
         shouldClear = false;
     }
